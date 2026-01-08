@@ -43,9 +43,9 @@
        " develop "
        (when dir
          (str "\"" dir "\""))
-       " --command env"
        (when args
-         (str " " args))))
+         (str " " args))
+       " --command env"))
 
 (defn ^:private parse-exported-vars [output]
   (->> (s/split output #"declare -x")

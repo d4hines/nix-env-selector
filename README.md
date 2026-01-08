@@ -109,9 +109,9 @@ file (located in the root of the workspace). Here are the configuration settings
 | ----------------------------- | ------- | ------------------------------------------------------------- |
 | `nixEnvSelector.nixFile`      | null    | Path to the Nix config file                                   |
 | `nixEnvSelector.packages`     | []      | List packages using as `-p` nix-shell args                    |
-| `nixEnvSelector.args`         | null    | Custom args string for nix-shell. EX: `-A <something> --pure` |
+| `nixEnvSelector.args`         | null    | Custom args string for nix-shell and nix develop. EX: `-A <something> --pure` or `--impure` |
 | `nixEnvSelector.nixShellPath` | null    | Custom path for nix-shell executable                          |
-| `nixEnvSelector.useFlakes` | false    | Enable support for `flake.nix`                          |
+| `nixEnvSelector.useFlakes` | false    | Enable support for `flake.nix` (uses `nix develop`)                          |
 
 
 ## Supported Platforms
