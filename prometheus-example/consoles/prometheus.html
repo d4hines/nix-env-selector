@@ -1,0 +1,128 @@
+{{ template "head" . }}
+
+{{ template "prom_content_head" . }}
+<h1>Prometheus Internal Metrics</h1>
+
+<h2>Storage</h2>
+<h3>Time Series</h3>
+<div id="timeseriesGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#timeseriesGraph"),
+  expr: "prometheus_tsdb_head_series",
+  name: "Active Time Series",
+  yAxisFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yHoverFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yTitle: "Count"
+})
+</script>
+
+<h3>Sample Ingestion</h3>
+<div id="samplesGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#samplesGraph"),
+  expr: "rate(prometheus_tsdb_head_samples_appended_total[5m])",
+  name: "Samples Ingested/sec",
+  yAxisFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yHoverFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yTitle: "Samples/sec"
+})
+</script>
+
+<h3>Storage Details</h3>
+<table class="table table-condensed table-striped table-bordered">
+  <tr>
+    <th>Metric</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>Active Time Series</td>
+    <td>{{ template "prom_query_drilldown" (args "prometheus_tsdb_head_series") }}</td>
+  </tr>
+  <tr>
+    <td>Total Chunks</td>
+    <td>{{ template "prom_query_drilldown" (args "prometheus_tsdb_head_chunks") }}</td>
+  </tr>
+  <tr>
+    <td>Chunks Created/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_tsdb_head_chunks_created_total[5m])") }}</td>
+  </tr>
+  <tr>
+    <td>Chunks Removed/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_tsdb_head_chunks_removed_total[5m])") }}</td>
+  </tr>
+  <tr>
+    <td>TSDB Size</td>
+    <td>{{ template "prom_query_drilldown" (args "prometheus_tsdb_storage_blocks_bytes") }}</td>
+  </tr>
+</table>
+
+<h2>Query Performance</h2>
+<h3>Query Duration</h3>
+<div id="queryGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#queryGraph"),
+  expr: [
+    "rate(prometheus_engine_query_duration_seconds_sum[5m]) / rate(prometheus_engine_query_duration_seconds_count[5m])"
+  ],
+  name: "Avg Query Duration",
+  yAxisFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yHoverFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yTitle: "Seconds"
+})
+</script>
+
+<h3>Query Stats</h3>
+<table class="table table-condensed table-striped table-bordered">
+  <tr>
+    <th>Metric</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>Queries/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_engine_queries[5m])") }}</td>
+  </tr>
+  <tr>
+    <td>Failed Queries/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_engine_queries_failed[5m])") }}</td>
+  </tr>
+  <tr>
+    <td>Concurrent Queries</td>
+    <td>{{ template "prom_query_drilldown" (args "prometheus_engine_queries_concurrent_max") }}</td>
+  </tr>
+</table>
+
+<h2>Scrape Performance</h2>
+<h3>Scrape Duration</h3>
+<div id="scrapeGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#scrapeGraph"),
+  expr: "scrape_duration_seconds",
+  name: "Scrape Duration",
+  yAxisFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yHoverFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yTitle: "Seconds"
+})
+</script>
+
+<h3>Target Health</h3>
+<table class="table table-condensed table-striped table-bordered">
+  <tr>
+    <th>Job</th>
+    <th>Up Targets</th>
+    <th>Total Targets</th>
+  </tr>
+  {{ range printf "up" | query | sortByLabel "job" }}
+  <tr>
+    <td>{{ .Labels.job }}</td>
+    <td>{{ template "prom_query_drilldown" (args (printf "up{job='%s'}" .Labels.job)) }}</td>
+    <td>{{ template "prom_query_drilldown" (args (printf "count(up{job='%s'})" .Labels.job)) }}</td>
+  </tr>
+  {{ end }}
+</table>
+
+{{ template "prom_content_tail" . }}
+{{ template "tail" }}

@@ -1,0 +1,44 @@
+{{ template "head" . }}
+
+{{ template "prom_content_head" . }}
+<h1>Prometheus Dashboard</h1>
+
+<h2>System Overview</h2>
+<h3>Targets Status</h3>
+<div>
+  <strong>Up Targets:</strong>
+  {{ template "prom_query_drilldown" (args "sum(up)") }}
+</div>
+
+<h3>Prometheus Stats</h3>
+<table class="table table-condensed table-striped table-bordered">
+  <tr>
+    <th>Metric</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>Ingested Samples/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_tsdb_head_samples_appended_total[5m])") }}</td>
+  </tr>
+  <tr>
+    <td>Active Time Series</td>
+    <td>{{ template "prom_query_drilldown" (args "prometheus_tsdb_head_series") }}</td>
+  </tr>
+  <tr>
+    <td>Chunks Created/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_tsdb_head_chunks_created_total[5m])") }}</td>
+  </tr>
+  <tr>
+    <td>Rule Evaluations/sec</td>
+    <td>{{ template "prom_query_drilldown" (args "rate(prometheus_rule_evaluations_total[5m])") }}</td>
+  </tr>
+</table>
+
+<h3>Available Dashboards</h3>
+<ul>
+  <li><a href="node.html">Node Exporter Metrics</a></li>
+  <li><a href="prometheus.html">Prometheus Internal Metrics</a></li>
+</ul>
+
+{{ template "prom_content_tail" . }}
+{{ template "tail" }}

@@ -1,0 +1,126 @@
+{{ template "head" . }}
+
+{{ template "prom_right_table_head" }}
+<tr>
+  <th>Node</th>
+  <th>{{ template "prom_query_drilldown" (args "sum(up{job='node'})") }} / {{ template "prom_query_drilldown" (args "count(up{job='node'})") }}</th>
+</tr>
+{{ template "prom_right_table_tail" }}
+
+{{ template "prom_content_head" . }}
+<h1>Node Exporter Dashboard</h1>
+
+<h2>CPU Usage</h2>
+<h3>CPU Utilization</h3>
+<div id="cpuGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#cpuGraph"),
+  expr: [
+    "100 - (avg by (instance) (irate(node_cpu_seconds_total{job='node',mode='idle'}[5m])) * 100)",
+  ],
+  name: "CPU Usage %",
+  yAxisFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yHoverFormatter: PromConsole.NumberFormatter.humanizeNoSmallPrefix,
+  yTitle: "Percentage"
+})
+</script>
+
+<h3>Load Average</h3>
+{{ template "prom_query_drilldown" (args "node_load1{job='node'}" "instance") }}
+
+<h2>Memory</h2>
+<h3>Memory Usage</h3>
+<div id="memGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#memGraph"),
+  expr: [
+    "node_memory_MemTotal_bytes{job='node'} - node_memory_MemAvailable_bytes{job='node'}",
+    "node_memory_MemAvailable_bytes{job='node'}"
+  ],
+  name: ["Used", "Available"],
+  yAxisFormatter: PromConsole.NumberFormatter.humanize,
+  yHoverFormatter: PromConsole.NumberFormatter.humanize,
+  yTitle: "Bytes"
+})
+</script>
+
+<h3>Memory Details</h3>
+<table class="table table-condensed table-striped table-bordered">
+  <tr>
+    <th>Metric</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>Total Memory</td>
+    <td>{{ template "prom_query_drilldown" (args "node_memory_MemTotal_bytes{job='node'}") }}</td>
+  </tr>
+  <tr>
+    <td>Available Memory</td>
+    <td>{{ template "prom_query_drilldown" (args "node_memory_MemAvailable_bytes{job='node'}") }}</td>
+  </tr>
+  <tr>
+    <td>Cached</td>
+    <td>{{ template "prom_query_drilldown" (args "node_memory_Cached_bytes{job='node'}") }}</td>
+  </tr>
+  <tr>
+    <td>Buffers</td>
+    <td>{{ template "prom_query_drilldown" (args "node_memory_Buffers_bytes{job='node'}") }}</td>
+  </tr>
+</table>
+
+<h2>Disk</h2>
+<h3>Disk Space</h3>
+<table class="table table-condensed table-striped table-bordered">
+  <tr>
+    <th>Mountpoint</th>
+    <th>Used</th>
+    <th>Available</th>
+    <th>Usage %</th>
+  </tr>
+  {{ range printf "node_filesystem_size_bytes{job='node',fstype!~'tmpfs|fuse.lxcfs|squashfs|vfat'}" | query | sortByLabel "mountpoint" }}
+  <tr>
+    <td>{{ .Labels.mountpoint }}</td>
+    <td>{{ template "prom_query_drilldown" (args (printf "node_filesystem_size_bytes{mountpoint='%s'} - node_filesystem_avail_bytes{mountpoint='%s'}" .Labels.mountpoint .Labels.mountpoint)) }}</td>
+    <td>{{ template "prom_query_drilldown" (args (printf "node_filesystem_avail_bytes{mountpoint='%s'}" .Labels.mountpoint)) }}</td>
+    <td>{{ template "prom_query_drilldown" (args (printf "100 - (node_filesystem_avail_bytes{mountpoint='%s'} / node_filesystem_size_bytes{mountpoint='%s'} * 100)" .Labels.mountpoint .Labels.mountpoint)) }}</td>
+  </tr>
+  {{ end }}
+</table>
+
+<h3>Disk I/O</h3>
+<div id="diskGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#diskGraph"),
+  expr: [
+    "rate(node_disk_read_bytes_total{job='node'}[5m])",
+    "rate(node_disk_written_bytes_total{job='node'}[5m])"
+  ],
+  name: ["Read", "Write"],
+  yAxisFormatter: PromConsole.NumberFormatter.humanize,
+  yHoverFormatter: PromConsole.NumberFormatter.humanize,
+  yTitle: "Bytes/sec"
+})
+</script>
+
+<h2>Network</h2>
+<h3>Network Traffic</h3>
+<div id="netGraph"></div>
+<script>
+new PromConsole.Graph({
+  node: document.querySelector("#netGraph"),
+  expr: [
+    "rate(node_network_receive_bytes_total{job='node',device!~'lo|veth.*|docker.*'}[5m])",
+    "rate(node_network_transmit_bytes_total{job='node',device!~'lo|veth.*|docker.*'}[5m])"
+  ],
+  name: ["Receive", "Transmit"],
+  yAxisFormatter: PromConsole.NumberFormatter.humanize,
+  yHoverFormatter: PromConsole.NumberFormatter.humanize,
+  yTitle: "Bytes/sec"
+})
+</script>
+
+{{ template "prom_content_tail" . }}
+{{ template "tail" }}
