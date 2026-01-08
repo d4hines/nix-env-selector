@@ -42,9 +42,12 @@
          (s/replace nix-path #" " "\\ "))
        " develop "
        (when dir
-         (str "\"" dir "\""))
-       (when args
-         (str " " args))
+         (if (and args (s/starts-with? args "#"))
+           (str dir args)
+           (str "\"" dir "\"")))
+       (when-not (and args (s/starts-with? args "#"))
+         (when args
+           (str " " args)))
        " --command env"))
 
 (defn ^:private parse-exported-vars [output]

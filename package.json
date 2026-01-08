@@ -48,7 +48,7 @@
 				"nixEnvSelector.args": {
 					"type": "string",
 					"default": null,
-					"description": "Additional args for nix-shell and nix develop (EX: -A some.thing --impure)"
+					"description": "Additional args for nix-shell (EX: -A some.thing)"
 				},
 				"nixEnvSelector.packages": {
 					"type": "array",
