@@ -70,11 +70,11 @@
 					"deprecationMessage": "[DEPRECATED] Use 'args' instead",
 					"description": "Attribute path (nix-shell -A)"
 				},
-        "nixEnvSelector.useFlakes": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable support for Nix flakes"
-        }
+				"nixEnvSelector.useFlakes": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable support for Nix flakes"
+				}
 			}
 		},
 		"commands": [
@@ -90,13 +90,15 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "echo ***DONE***",
-    "bundle": "esbuild --bundle dist/main.js --outfile=dist/index.js --external:vscode --platform=node --format=cjs --loader:.svg=file && rm dist/main.js",
+		"bundle": "esbuild --bundle dist/main.js --outfile=dist/index.js --external:vscode --platform=node --format=cjs --loader:.svg=file && rm dist/main.js",
 		"compile": "shadow-cljs release extension && npm run bundle",
-		"watch": "shadow-cljs watch extension"
+		"watch": "shadow-cljs watch extension",
+		"package": "vsce package"
 	},
 	"devDependencies": {
 		"@types/vscode": "^1.97.0",
 		"@vscode/test-electron": "^2.4.1",
+		"@vscode/vsce": "^3.7.1",
 		"esbuild": "^0.25.0",
 		"shadow-cljs": "2.28.21"
 	}
